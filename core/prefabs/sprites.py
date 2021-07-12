@@ -6,13 +6,14 @@ from pygame.locals import *
 
 import assets
 from core.inventory import inventory
-from core.items import item
+from core.items.items import Items
+from core.prefabs.livingcreature import LivingCreature
 from core.skills import baseskills, levelbase
 from core.skills import playerskills
-from core.prefabs.livingcreature import LivingCreature
 from settings import *
 from world.block import Block
-from world.materials import Materials
+from world.material.materials import Materials
+from core.console.consolefunctions import Console
 
 
 class Player(LivingCreature):
@@ -58,7 +59,6 @@ class Player(LivingCreature):
 		# TODO: Set debug cooldown (might remove later)
 		self.debug_print_cooldown = 0
 
-
 	# Methods
 	def check_levels(self):
 		# Check base skills
@@ -67,7 +67,9 @@ class Player(LivingCreature):
 				bs.value.lvl.levelup(t="player")
 				# Display text to notify player of level up
 				# TODO: Make notification on-screen, not in console
-				print(f"You leveled up {bs.value.name} to level {bs.value.lvl.level}! You need {bs.value.lvl.xp_needed} xp for the next level")
+				Console.log(thread="Player",
+					message=f"You leveled up {bs.value.name} to level {bs.value.lvl.level}! \
+					You need {bs.value.lvl.xp_needed} xp for the next level")
 
 		# Check player skills
 		for ps in playerskills.Playerskills:
@@ -75,7 +77,9 @@ class Player(LivingCreature):
 				ps.value.lvl.levelup(t="player")
 				# Display text to notify player of level up
 				# TODO: Make notification on-screen, not in console
-				print(f"You leveled up {ps.value.name} to level {ps.value.lvl.level}! You need {ps.value.lvl.xp_needed} xp for the next level")
+				Console.log(thread="Player",
+							message=f"You leveled up {ps.value.name} to level {ps.value.lvl.level}! \
+							You need {ps.value.lvl.xp_needed} xp for the next level")
 
 		# Check player level
 		while self.lvl.xp >= self.lvl.xp_needed:
@@ -83,7 +87,8 @@ class Player(LivingCreature):
 			self.skillpoints += self.lvl.level * 333 % 4  # TODO: make dynamic
 			# Display text to notify player of level up
 			# TODO: Make notification on-screen, not in console
-			print(f"Your player leveled up to level {self.lvl.level}! You need {self.lvl.xp_needed} xp for the next level")
+			Console.log(thread="Player",
+						message=f"Your player leveled up to level {self.lvl.level}! You need {self.lvl.xp_needed} xp for the next level")
 
 	# Check player input (currently only movement keys)
 	def get_keys(self):
@@ -102,33 +107,42 @@ class Player(LivingCreature):
 			self.vel *= 0.7071
 		if keys[K_p] and self.debug_print_cooldown == 0:
 			# TODO: Debug menu for skills
-			print("-------------------------------------------------")
+			Console.log(thread="Player",
+						message="-------------------------------------------------")
 			for bs in baseskills.Baseskills:
-				print(bs.value.name, bs.value.lvl.level, bs.value.lvl.xp, bs.value.lvl.xp_needed)
-			print("-------------------------------------------------")
+				Console.log(thread="Player",
+							message=f"{bs.value.name} {bs.value.lvl.level} {bs.value.lvl.xp} {bs.value.lvl.xp_needed}")
+			Console.log(thread="Player",
+						message="-------------------------------------------------")
 			for ps in playerskills.Playerskills:
-				print(ps.value.name, ps.value.lvl.level, ps.value.lvl.xp_needed)
-			print("-------------------------------------------------")
-			print("Format: level | xp | sp | hp | armor")
-			print("Player", self.lvl.level, self.lvl.xp, self.skillpoints, self.hp, self.armor)
+				Console.log(thread="Player",
+							message=f"{ps.value.name} {ps.value.lvl.level} {ps.value.lvl.xp_needed}")
+			Console.log(thread="Player",
+						message="-------------------------------------------------")
+			Console.log(thread="Player",
+						message="Format: level | xp | sp | hp | armor")
+			Console.log(thread="Player",
+						message=f"Player {self.lvl.level} {self.lvl.xp} {self.skillpoints} {self.hp} {self.armor}")
 			self.debug_print_cooldown = 1
 		if keys[K_i] and self.debug_print_cooldown == 0:
-			print("Inventory:")
+			Console.log(thread="Player",
+						message="Inventory:")
 			for it in self.inventory.inv.ls:
-				print(it.item.displayName, it.quantity, it.item.max_stack)
+				Console.log(thread="Player",
+							message=f"{it.item.displayName} {it.quantity} {it.item.max_stack}")
 			self.debug_print_cooldown = 1
 		if keys[K_o]:
-			print(f"world.entities: {self.game.world.entities}")
+			Console.log(thread="Player",
+						message=f"world.entities: {self.game.world.entities}")
 
+	# DEPRICATED
 	def get_events(self):
 		for ev in pygame.event.get():
-			print("1")
 			if ev.type == MOUSEBUTTONDOWN and pygame.mouse.get_pressed(3)[0]:
-				print("2")
 				for tree in self.game.trees:
 					if tree.collidepoint(pygame.mouse.get_pos()):
 						# Chop down the tree
-						print(tree)
+						pass
 
 	# Check mouse actions
 	def get_mouse(self):
@@ -150,21 +164,25 @@ class Player(LivingCreature):
 						# Add wood to inventory
 						# TODO: Add woodcutting skill multiplier
 						amount = randint(1, 5)
-						self.inventory.add_new_item(item.get_item_from_name(self.game.items, 'Wood'), amount)
+						self.inventory.add_new_item(Items['WOOD'], amount)
 						# Display message for amount of wood
-						print(f"You got {amount} wood!")
+						Console.log(thread="Player",
+									message=f"You got {amount} wood!")
 
 						# TODO: Add wood to inventory
 						# Add exp to woodcutting
 						# TODO: Add multiplier/check tree type?
 						baseskill.get_from_name(self.baseskills, "Woodcutting").lvl.xp += 10
 						# TODO: Pure debug text, remove later
-						print("You chopped down a tree and gained 10 Woodcutting xp!")
-						print("Your player gained 10 xp")
+						Console.log(thread="Player",
+									message="You chopped down a tree and gained 10 Woodcutting xp!")
+						Console.log(thread="Player",
+									message="Your player gained 10 xp")
 						self.lvl.xp += 10
 						self.check_levels()
 					else:
-						print("You need an axe to break a tree")
+						Console.log(thread="Player",
+									message="You need an axe to break a tree")
 
 	# Gets called every frame to update the player's status
 	def update(self):
@@ -201,77 +219,40 @@ class Player(LivingCreature):
 				if block.material.id == Materials.WALL.value.id:
 					rect: Rect = block.material.rect.move((px + dx) * TILESIZE, (py + dy) * TILESIZE)
 					if rect.colliderect(movedColRect):
-						print(f"COLLIDE {self.vel} {dx},{dy}")
+						# print(f"COLLIDE {self.vel} {dx},{dy}")
 						if self.vel.x > 0 and dx > 0:
-							print("d")
+							# print("d")
 							self.vel.x = 0
-							self.healthbar.sethealthbar1(self, self.healthbar.gethealthbar(self) - 5)
+							self.hp -= 5
 						if self.vel.x < 0 and dx < 0:
-							print("a")
+							# print("a")
 							self.vel.x = 0
-							self.healthbar.sethealthbar1(self, self.healthbar.gethealthbar(self) - 5)
+							self.hp -= 5
 						if self.vel.y > 0 and dy > 0:
-							print("s")
+							# print("s")
 							self.vel.y = 0
-							self.healthbar.sethealthbar1(self, self.healthbar.gethealthbar(self) - 5)
+							self.hp -= 5
 						if self.vel.y < 0 and dy < 0:
-							print("w")
+							# print("w")
 							self.vel.y = 0
-							self.healthbar.sethealthbar1(self, self.healthbar.gethealthbar(self) - 5)
-
-
-class Wall(pygame.sprite.Sprite):
-	def __init__(self, game, x, y):
-		self.groups = game.sprites, game.walls
-		pygame.sprite.Sprite.__init__(self, self.groups)
-
-		# Game object so we can interact with the world
-		self.game = game
-
-		# Wall image asset
-		self.image = pygame.transform.scale(assets.get_asset_from_name(game.graphics, "wall1").image, (64, 64))
-		self.rect = self.image.get_rect()
-
-		# Set positions
-		self.x = x
-		self.y = y
-		self.rect.x = x * TILESIZE
-		self.rect.y = y * TILESIZE
-
-
-class Tree(pygame.sprite.Sprite):
-	def __init__(self, game, x, y):
-		self.groups = game.sprites, game.trees
-		pygame.sprite.Sprite.__init__(self, self.groups)
-
-		# Game object so we can interact with the world
-		self.game = game
-		self.image = pygame.transform.scale(assets.get_asset_from_name(game.graphics, "tree1").image, (64, 64))
-		self.rect = self.image.get_rect()
-
-		# Set positions
-		self.x = x
-		self.y = y
-		self.rect.x = x * TILESIZE
-		self.rect.y = y * TILESIZE
+							self.hp -= 5
 
 
 class EnemyStandard(LivingCreature):
-	def __init__(self, game, hp, max_hp, armor, speed, x, y):
+	def __init__(self, game, hp, max_hp, armor, speed):
 		# TODO: Remove pos and image from this class as it will be in enemy.py
 		# TODO: Add movement (pathfinding
 		# Getting specific information from LivingCreature class
 		super().__init__(game, hp, max_hp, armor, speed)
-# Assets
-		self.image = pygame.transform.scale(assets.get_asset_from_name(game.graphics, 'mage3').image, (64, 64))
+		# Assets
+		self.image = pygame.transform.scale(assets.get_asset_from_name(self.game.graphics, 'mage3').image, (64, 64))
 		self.rect = self.image.get_rect()
-# Possition
-		self.pos = pygame.math.Vector2(x, y) * TILESIZE
-		self.rect.center = self.pos
 
 	def update(self):
 		# Move the player
 		if self.image is not None:
 			self.rect = self.image.get_rect()
-		self.rect.center = self.pos
-		# self.pos += self.vel * self.game.dt
+		self.move()
+
+	def move(self):
+		pass
