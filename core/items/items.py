@@ -21,7 +21,7 @@ class Items(Enum):
 	GUN = Item("Gun", "gun", 27, 1)
 
 	# Materials
-	WOOD = Item("Wood", "wood", 50, 999)
+	OAK_WOOD = Item("Oak Wood", "oak_wood", 50, 999)
 	STONE = Item("Stone", "stone", 51, 999)
 	IRON = Item("Iron", "iron", 52, 999)
 	SULFUR = Item("Sulfur", "sulfur", 53, 999)
@@ -63,7 +63,6 @@ class Items(Enum):
 						Assets[it.value.texturePath.upper()].value.image, (64, 64))
 					it.value.rect = it.value.image.get_rect()
 				except KeyError:
-					# TODO: Item does not yet have an image
 					pass
 
 	@staticmethod

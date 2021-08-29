@@ -482,20 +482,54 @@ class Assets(Enum):
 	PLAYER1 = Asset("Player1", "player1", 550)
 	PLAYER2 = Asset("Player2", "player2", 551)
 	PLAYER3 = Asset("Player3", "player3", 552)
-	# ?
+	# Column 32
+	IRON_SWORD = Asset("Iron sword", "iron_sword", 711)
+	# Column 35
 	NUMBER0 = Asset("Number0", "number0", 787)
-	IRON_AXE = Asset("Iron axe", "iron_axe", 931)
+	# Column 37
+	BOW = Asset("Bow", "bow", 820)
+	# Column 40
+	IRON_AXE = Asset("Iron axe", "iron_axe", 887)
+	# Column 47
+	BACKPACK1 = Asset("Backpack1", "backpack1", 1038)
+
+	# Assets made by Kevin
+	# Row 1
+	LOG = Asset("Log", "log", 1056)
+	WOOD = Asset("Wood", "wood", 1057)
+	STONE = Asset("Stone", "stone", 1058)
+	COAL = Asset("Coal", "coal", 1059)
+	IRON_ORE = Asset("Iron Ore", "iron_ore", 1060)
+	IRON = Asset("Iron", "iron", 1061)
+	# Row 2
+	HEALTH = Asset("Health", "health", 1066)
+	LEVEL = Asset("Level", "level", 1067)
+	MANA = Asset("Mana", "mana", 1068)
 
 	@staticmethod
-	def getAsset(iden):
+	# def getAsset(iden, s=0, e=len(Assets)-1):
+	def getAsset(iden, s=0, e=461):  # TODO: Why the fuck cant i just use len(Assets) in this default arg. I dont want to put this outside of Assets
 		"""
 		:param int iden: the identifier of the entity type
+		:param int s: the start for the binary search
+		:param int e: the length of the part of array
 		:return: Returns entity or None
 		:rtype: Item
 		"""
-		for ass in Assets:
+		"""for ass in Assets:
 			if ass.value.id == iden:
 				return ass.value
+		"""
+		# print(f"{iden=}\t{s=}\t{e=}\t", end="")
+		if e >= s:
+			mid = s + (e - s) // 2
+			assets = list(Assets)
+			# print(f"{mid=}")
+			if assets[mid].value.id == iden:
+				return assets[mid].value
+			if assets[mid].value.id > iden:
+				return Assets.getAsset(iden, s, mid - 1)
+			return Assets.getAsset(iden, mid + 1, e)
 		return None
 
 	@staticmethod
@@ -504,12 +538,20 @@ class Assets(Enum):
 		assets = []
 		# Open the tilesheet
 		# colored_packed.png is 16x16, currently is hardcoded to this file
-		sheet = pygame.image.load(
+		sheet1 = pygame.image.load(
 			path.join(GAMEDIR, 'assets/visual/Tilesheet/colored_transparent_packed.png'))
+		sheet2 = pygame.image.load(
+			path.join(GAMEDIR, 'assets/visual/Tilesheet/custom_textures.png'))
 		# index = 0  # is used to know how many iterations we have done (x*22+y = index)
 		for x in range(48):
 			for y in range(22):
 				# list(Assets)[x * 22 + y].image = sheet.subsurface(pygame.Rect((16 * x, 16 * y), (16, 16)))
 				ass = Assets.getAsset(x * 22 + y)
 				if ass is not None:
-					ass.image = sheet.subsurface(pygame.Rect((16 * x, 16 * y), (16, 16)))
+					ass.image = sheet1.subsurface(pygame.Rect((16 * x, 16 * y), (16, 16)))
+		for y in range(10):
+			for x in range(10):
+				# list(Assets)[x * 22 + y].image = sheet.subsurface(pygame.Rect((16 * x, 16 * y), (16, 16)))
+				ass = Assets.getAsset(1056 + (y * 10 + x))
+				if ass is not None:
+					ass.image = sheet2.subsurface(pygame.Rect((16 * x, 16 * y), (16, 16)))
